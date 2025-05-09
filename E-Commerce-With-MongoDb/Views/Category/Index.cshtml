@@ -1,0 +1,80 @@
+﻿@model IEnumerable<E_Commerce_With_MongoDb.Models.Category>
+
+<h2 class="text-center mb-5">Categories List</h2>
+
+<div class="container">
+    <table class="table table-hover table-bordered shadow-sm">
+        <thead class="table-light">
+            <tr>
+                <th>Category Name</th>
+                <th>Properties</th>
+                <th class="text-center">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var category in Model)
+            {
+                <tr>
+                    <td>@category.Name</td>
+                    <td>
+                        @if (category.Properties != null && category.Properties.Any())
+                        {
+                            <ul class="list-unstyled">
+                                @foreach (var property in category.Properties)
+                                {
+                                    <li><strong>@property.Name</strong> - @property.Type</li>
+                                }
+                            </ul>
+                        }
+                        else
+                        {
+                            <span class="text-muted">No properties</span>
+                        }
+                    </td>
+                    <td class="text-center">
+                        <a href="@Url.Action("Edit", "Category", new { id = category.Id })" class="btn btn-warning btn-sm px-4 py-2">Edit</a>
+                        <button type="button" class="btn btn-danger btn-sm px-4 py-2" data-bs-toggle="modal" data-bs-target="#deleteModal" data-id="@category.Id">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <!-- Add New Category Button -->
+    <div class="text-center mt-4">
+        <a href="@Url.Action("Create", "Category")" class="btn btn-primary px-5 py-2">+ Add New Category</a>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Delete Category</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete this category?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="post" action="@Url.Action("Delete", "Category")" id="deleteForm">
+                    <input type="hidden" name="categoryId" id="categoryId" />
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const deleteModal = document.getElementById('deleteModal');
+        deleteModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            const categoryId = button.getAttribute('data-id');
+            document.getElementById('categoryId').value = categoryId;
+        });
+    </script>
+}

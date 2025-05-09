@@ -1,0 +1,88 @@
+﻿@model E_Commerce_With_MongoDb.Models.Category
+
+<h2 class="text-center mb-4">Edit Category</h2>
+
+<form asp-action="Edit" method="post" class="bg-light p-4 rounded shadow-sm">
+    <input type="hidden" asp-for="Id" />
+
+    <div class="form-group mb-3">
+        <label class="form-label">Category Name</label>
+        <input asp-for="Name" class="form-control" placeholder="Enter Category Name" required />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mb-3">
+        <label class="form-label">Properties</label>
+        <div id="propertiesContainer">
+            @for (int i = 0; i < Model.Properties.Count; i++)
+            {
+                <div class="property-group d-flex align-items-center mb-3">
+                    <input type="text" class="form-control me-2" name="Properties[@i].Name" value="@Model.Properties[i].Name" placeholder="Property Name" required />
+                    <select class="form-select me-2" name="Properties[@i].Type" required style="width: 150px;">
+                        <option value="">Select Type</option>
+                        <option value="int" selected="@(Model.Properties[i].Type == "int")">Integer</option>
+                        <option value="float" selected="@(Model.Properties[i].Type == "float")">Float</option>
+                        <option value="string" selected="@(Model.Properties[i].Type == "string")">String</option>
+                        <option value="image" selected="@(Model.Properties[i].Type == "image")">Image</option>
+                    </select>
+                    <button type="button" class="btn btn-danger btn-sm removePropertyBtn">Delete</button>
+                </div>
+            }
+        </div>
+        <button type="button" id="addPropertyButton" class="btn btn-outline-secondary w-100 mt-2">+ Add Property</button>
+    </div>
+
+    <div class="d-flex justify-content-between">
+        <button type="submit" class="btn btn-success px-4 py-2">Save Changes</button>
+        <a href="@Url.Action("Index", "Category")" class="btn btn-secondary px-4 py-2">Cancel</a>
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        function updatePropertyIndices() {
+            const groups = document.querySelectorAll('#propertiesContainer .property-group');
+            groups.forEach((group, index) => {
+                const nameInput = group.querySelector('input[type="text"]');
+                const typeSelect = group.querySelector('select');
+
+                nameInput.name = `Properties[${index}].Name`;
+                typeSelect.name = `Properties[${index}].Type`;
+            });
+        }
+
+        document.getElementById('addPropertyButton').addEventListener('click', function () {
+            const container = document.getElementById('propertiesContainer');
+            const propertyGroup = document.createElement('div');
+            propertyGroup.classList.add('property-group', 'd-flex', 'align-items-center', 'mb-3');
+            propertyGroup.innerHTML = `
+                <input type="text" class="form-control me-2" placeholder="Property Name" required />
+                <select class="form-select me-2" required style="width: 150px;">
+                    <option value="">Select Type</option>
+                    <option value="int">Integer</option>
+                    <option value="float">Float</option>
+                    <option value="string">String</option>
+                    <option value="image">Image</option>
+                </select>
+                <button type="button" class="btn btn-danger btn-sm removePropertyBtn">Delete</button>
+            `;
+
+            propertyGroup.querySelector('.removePropertyBtn').addEventListener('click', function () {
+                propertyGroup.remove();
+                updatePropertyIndices();
+            });
+
+            container.appendChild(propertyGroup);
+            updatePropertyIndices();
+        });
+
+        document.querySelectorAll('.removePropertyBtn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                this.closest('.property-group').remove();
+                updatePropertyIndices();
+            });
+        });
+
+        updatePropertyIndices(); // initial setup
+    </script>
+}
