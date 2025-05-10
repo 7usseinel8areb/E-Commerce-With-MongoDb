@@ -1,0 +1,179 @@
+﻿@model E_Commerce_With_MongoDb.Models.Product
+@using Newtonsoft.Json
+@{
+    ViewData["Title"] = "Edit Product";
+    var categories = ViewBag.Categories as List<Category>;
+    var existingPropsJson = ViewBag.ExistingPropertiesJson as string ?? "{}";
+}
+
+<div class="container py-5">
+    <div class="card shadow">
+        <div class="card-header bg-warning text-dark">
+            <h2 class="text-center">Edit Product</h2>
+        </div>
+        <div class="card-body">
+            <form asp-action="Edit" method="post" enctype="multipart/form-data">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="Id" />
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                <!-- Basic Product Info -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <label asp-for="Name" class="form-label fw-bold">Product Name</label>
+                        <input asp-for="Name" class="form-control" />
+                        <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="Price" class="form-label fw-bold">Price</label>
+                        <input asp-for="Price" type="number" step="0.01" class="form-control" />
+                        <span asp-validation-for="Price" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <!-- Category Selection -->
+                <div class="form-group mb-4">
+                    <label asp-for="CategoryId" class="form-label fw-bold">Category</label>
+                    <select asp-for="CategoryId" class="form-select" required id="CategoryId">
+                        <option value="">-- Select Category --</option>
+                        @if (categories != null)
+                        {
+                            foreach (var cat in categories)
+                            {
+                                <option value="@cat.Id" selected="@(Model.CategoryId == cat.Id)">@cat.Name</option>
+                            }
+                        }
+                    </select>
+                    <span asp-validation-for="CategoryId" class="text-danger"></span>
+                </div>
+
+                <!-- Dynamic Properties -->
+                <div id="dynamicProperties" class="mb-4">
+                    <div class="text-center py-3"><i class="fas fa-spinner fa-spin"></i> Loading properties...</div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <button type="submit" class="btn btn-warning me-md-2">
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to List
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        async function loadProperties(categoryId, existingProps = {}) {
+            const container = document.getElementById('dynamicProperties');
+            container.innerHTML = '<div class="text-center py-3"><i class="fas fa-spinner fa-spin"></i> Loading properties...</div>';
+
+            if (!categoryId) {
+                container.innerHTML = '<div class="alert alert-info">Please select a category</div>';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/Product/GetCategoryProperties?categoryId=${categoryId}`);
+                if (!response.ok) throw new Error(`Error ${response.status}`);
+
+                const properties = await response.json();
+                if (!properties || properties.length === 0) {
+                    container.innerHTML = '<div class="alert alert-info">No properties defined for this category</div>';
+                    return;
+                }
+
+                renderProperties(properties, container, existingProps);
+            } catch (error) {
+                container.innerHTML = `<div class="alert alert-danger">Failed to load properties: ${error.message}</div>`;
+            }
+        }
+
+        function renderProperties(properties, container, existingProps) {
+            container.innerHTML = '';
+            properties.forEach((prop, index) => {
+                const propGroup = document.createElement('div');
+                propGroup.className = 'form-group mb-3';
+
+                const label = document.createElement('label');
+                label.className = 'form-label fw-bold';
+                label.textContent = prop.name;
+                label.htmlFor = `prop_${index}`;
+
+                let input;
+                const propType = String(prop.type).toLowerCase();
+                const propValue = existingProps[prop.name] || '';
+
+                switch (propType) {
+                    case 'int':
+                        input = createInput('number', prop.name, propValue, '1');
+                        break;
+                    case 'float':
+                        input = createInput('number', prop.name, propValue, '0.01');
+                        break;
+                    case 'bool':
+                        input = createSelect('boolean', prop.name, propValue);
+                        break;
+                    case 'date':
+                        input = createInput('date', prop.name, propValue);
+                        break;
+                    case 'image':
+                    case 'file':
+                        input = createInput('file', prop.name, '');
+                        input.accept = propType === 'image' ? 'image/*' : '*/*';
+                        break;
+                    default:
+                        input = createInput('text', prop.name, propValue);
+                }
+
+                propGroup.appendChild(label);
+                propGroup.appendChild(input);
+                container.appendChild(propGroup);
+            });
+        }
+
+        function createInput(type, name, value, step = null) {
+            const input = document.createElement('input');
+            input.type = type;
+            input.className = 'form-control';
+            input.id = `prop_${name.replace(/\s+/g, '_')}`;
+            input.name = `Properties[${name}]`;
+            input.value = value;
+            if (step) input.step = step;
+            return input;
+        }
+
+        function createSelect(type, name, value) {
+            const input = document.createElement('select');
+            input.className = 'form-select';
+            input.id = `prop_${name.replace(/\s+/g, '_')}`;
+            input.name = `Properties[${name}]`;
+            const options = [
+                { value: 'true', text: 'Yes' },
+                { value: 'false', text: 'No' }
+            ];
+            options.forEach(option => {
+                const optElement = document.createElement('option');
+                optElement.value = option.value;
+                optElement.textContent = option.text;
+                if (value === option.value) optElement.selected = true;
+                input.appendChild(optElement);
+            });
+            return input;
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const selectedCategoryId = document.getElementById('CategoryId').value;
+            const existingProps = @Html.Raw(existingPropsJson);
+            loadProperties(selectedCategoryId, existingProps);
+        });
+
+        document.getElementById('CategoryId').addEventListener('change', function () {
+            loadProperties(this.value);
+        });
+    </script>
+}

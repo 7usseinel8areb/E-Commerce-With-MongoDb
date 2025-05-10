@@ -1,0 +1,176 @@
+﻿@model E_Commerce_With_MongoDb.Models.Product
+@{
+    ViewData["Title"] = "Create Product";
+    var categories = ViewBag.Categories as List<Category>;
+}
+
+<div class="container py-5">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h2 class="text-center">Create New Product</h2>
+        </div>
+        <div class="card-body">
+            <form asp-action="Create" method="post" enctype="multipart/form-data" id="productForm">
+                @Html.AntiForgeryToken()
+
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                <!-- Basic Product Info -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="Name" class="form-label fw-bold">Product Name</label>
+                            <input asp-for="Name" class="form-control" placeholder="Enter product name" />
+                            <span asp-validation-for="Name" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="Price" class="form-label fw-bold">Price</label>
+                            <input asp-for="Price" type="number" step="0.01" class="form-control" placeholder="0.00" />
+                            <span asp-validation-for="Price" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Category Selection -->
+                <div class="form-group mb-4">
+                    <label asp-for="CategoryId" class="form-label fw-bold">Category</label>
+                    <select asp-for="CategoryId" class="form-select" required>
+                        <option value="">-- Select Category --</option>
+                        @if (categories != null)
+                        {
+                            foreach (var cat in categories)
+                            {
+                                <option value="@cat.Id">@cat.Name</option>
+                            }
+                        }
+                    </select>
+                    <span asp-validation-for="CategoryId" class="text-danger"></span>
+                </div>
+
+                <!-- Dynamic Properties Container -->
+                <div id="dynamicProperties" class="mb-4">
+                    <div class="alert alert-info">
+                        Select a category to see available properties
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <button type="submit" class="btn btn-primary me-md-2">
+                        <i class="fas fa-save"></i> Create Product
+                    </button>
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to List
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <script>
+        document.getElementById('CategoryId').addEventListener('change', async function() {
+            const categoryId = this.value;
+            const container = document.getElementById('dynamicProperties');
+                    container.innerHTML = '<div class="text-center py-3"><i class="fas fa-spinner fa-spin"></i> Loading properties...</div>';
+
+            if (!categoryId) {
+                container.innerHTML = '<div class="alert alert-info">Please select a category</div>';
+                return;
+            }
+
+            try {
+                console.log('Fetching properties for category:', categoryId);
+
+                const response = await fetch(`/Product/GetCategoryProperties?categoryId=${categoryId}`);
+                console.log('Response status:', response.status);
+
+                if (!response.ok) {
+                    throw new Error(`Server returned ${response.status}`);
+                }
+
+                const properties = await response.json();
+                console.log('Received properties:', properties);
+
+                if (!properties || properties.length === 0) {
+                    container.innerHTML = '<div class="alert alert-info">No properties defined for this category</div>';
+                    return;
+                }
+
+                renderProperties(properties, container);
+            } catch (error) {
+                console.error('Error loading properties:', error);
+                container.innerHTML = `
+                    <div class="alert alert-danger">
+                        Failed to load properties: ${error.message}
+                    </div>
+                `;
+            }
+        });
+
+        function renderProperties(properties, container) {
+            container.innerHTML = '';
+
+            properties.forEach((prop, index) => {
+                const propGroup = document.createElement('div');
+                propGroup.className = 'form-group mb-3';
+
+                const label = document.createElement('label');
+                label.className = 'form-label fw-bold';
+                label.textContent = `${prop.name}`; // بدون النوع هنا
+                label.htmlFor = `prop_${index}`;
+
+                let input;
+                const propType = String(prop.type).toLowerCase();
+
+                switch (propType) {
+                    case 'int':
+                        input = createInput('number', prop.name, `Enter ${prop.name} (Int)`);
+                        input.step = '1';
+                        break;
+                    case 'float':
+                        input = createInput('number', prop.name, `Enter ${prop.name} (Float)`);
+                        input.step = '0.01';
+                        break;
+                    case 'bool':
+                        input = document.createElement('select');
+                        input.className = 'form-select';
+                        input.name = `Properties[${prop.name}]`;
+                        input.innerHTML = `
+                            <option value="true">Yes</option>
+                            <option value="false">No</option>
+                        `;
+                        break;
+                    case 'date':
+                        input = createInput('date', prop.name, '');
+                        break;
+                    case 'image':
+                    case 'file':
+                        input = createInput('file', prop.name, '');
+                        input.accept = propType === 'image' ? 'image/*' : '*/*';
+                        break;
+                    default:
+                        input = createInput('text', prop.name, `Enter ${prop.name} (${prop.type})`);
+                }
+
+
+                propGroup.appendChild(label);
+                propGroup.appendChild(input);
+                container.appendChild(propGroup);
+            });
+        }
+
+        function createInput(type, name, placeholder) {
+            const input = document.createElement('input');
+            input.type = type;
+            input.className = 'form-control';
+            input.id = `prop_${name.replace(/\s+/g, '_')}`;
+            input.name = `Properties[${name}]`;
+            input.placeholder = placeholder;
+            return input;
+        }
+
+    </script>
+}

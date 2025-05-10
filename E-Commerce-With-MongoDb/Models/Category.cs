@@ -1,4 +1,5 @@
-﻿using MongoDB.Bson;
+﻿using E_Commerce_With_MongoDb.Enums;
+using MongoDB.Bson;
 
 namespace E_Commerce_With_MongoDb.Models;
 
@@ -12,5 +13,5 @@ public class Category
 public class Property
 {
     public string Name { get; set; }
-    public string Type { get; set; }
+    public PropertyType Type { get; set; }
 }

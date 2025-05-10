@@ -8,5 +8,5 @@ public class Product
     public string Name { get; set; }
     public double Price { get; set; }
     public ObjectId CategoryId { get; set; }
-    public Dictionary<string, string> ProductProperties { get; set; }
+    public Dictionary<string, string> ProductProperties { get; set; } = new();
 }
