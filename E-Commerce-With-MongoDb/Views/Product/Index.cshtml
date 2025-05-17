@@ -133,7 +133,6 @@
 @section Scripts {
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Delete Modal Handling
             const deleteModal = document.getElementById('deleteModal');
 
             deleteModal.addEventListener('show.bs.modal', function(event) {
@@ -145,7 +144,6 @@
                 document.getElementById('productName').textContent = productName;
             });
 
-            // Form submission handling
             document.getElementById('deleteForm').addEventListener('submit', function(e) {
                 const productId = document.getElementById('productId').value;
                 if (!productId) {

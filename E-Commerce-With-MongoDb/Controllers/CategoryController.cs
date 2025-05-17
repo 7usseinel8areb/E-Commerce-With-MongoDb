@@ -54,7 +54,6 @@ public class CategoryController(MongoDBContext _context) : Controller
         return RedirectToAction("Index");
     }
 
-    // حذف الكاتيجوري
     [HttpPost]
     public IActionResult Delete(string categoryId)
     {

@@ -17,7 +17,6 @@
                 <input type="hidden" asp-for="Id" />
                 <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
-                <!-- Basic Product Info -->
                 <div class="row mb-4">
                     <div class="col-md-6">
                         <label asp-for="Name" class="form-label fw-bold">Product Name</label>
@@ -31,7 +30,6 @@
                     </div>
                 </div>
 
-                <!-- Category Selection -->
                 <div class="form-group mb-4">
                     <label asp-for="CategoryId" class="form-label fw-bold">Category</label>
                     <select asp-for="CategoryId" class="form-select" required id="CategoryId">
@@ -52,7 +50,6 @@
                     <div class="text-center py-3"><i class="fas fa-spinner fa-spin"></i> Loading properties...</div>
                 </div>
 
-                <!-- Form Actions -->
                 <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                     <button type="submit" class="btn btn-warning me-md-2">
                         <i class="fas fa-save"></i> Save Changes

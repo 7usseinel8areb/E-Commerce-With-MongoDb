@@ -33,7 +33,6 @@ namespace E_Commerce_With_MongoDb.Controllers
             {
                 if (ModelState.IsValid)
                 {
-                    // معالجة الخصائص الديناميكية
                     product.ProductProperties = await ProcessDynamicProperties(product.CategoryId, form);
 
                     await _context.Products.InsertOneAsync(product);
@@ -145,7 +144,6 @@ namespace E_Commerce_With_MongoDb.Controllers
 
             Console.WriteLine($"Found {category.Properties?.Count} properties");
 
-            // Corrected the initialization of the empty list to match the anonymous type
             var result = category.Properties?.Select(p => new
             {
                 name = p.Name,
@@ -205,7 +203,6 @@ namespace E_Commerce_With_MongoDb.Controllers
             return View(product);
         }
 
-        // POST: Product/Delete/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(string id)

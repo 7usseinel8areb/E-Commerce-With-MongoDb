@@ -6,10 +6,10 @@ using MongoDB.Driver;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
-// ????? ????? MongoDbSettings ?? ??? ?????????
+
 builder.Services.Configure<MongoDbSettings>(builder.Configuration.GetSection("MongoDbSettings"));
 
-// ????? MongoDBContext ???? ????? ?? IMongoDatabase
+
 builder.Services.AddSingleton<IMongoDatabase>(sp =>
 {
     var mongoDbSettings = sp.GetRequiredService<IOptions<MongoDbSettings>>().Value;
@@ -17,7 +17,7 @@ builder.Services.AddSingleton<IMongoDatabase>(sp =>
     return client.GetDatabase(mongoDbSettings.DatabaseName);
 });
 
-// ????? MongoDBContext ?????
+
 builder.Services.AddSingleton<MongoDBContext>();
 
 var app = builder.Build();
